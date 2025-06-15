@@ -1,0 +1,43 @@
+#!/bin/bash
+set -e
+
+bind_cluster_role() {
+  USER=$1
+  ROLE=$2
+  echo "Binding $USER to ClusterRole $ROLE"
+  kubectl create clusterrolebinding "${USER}-${ROLE}" \
+    --clusterrole="$ROLE" \
+    --serviceaccount="default:$USER" || true
+}
+
+bind_namespace_role() {
+  USER=$1
+  ROLE=$2
+  NS=$3
+  echo "Binding $USER to Role $ROLE in namespace $NS"
+  kubectl create rolebinding "${USER}-${ROLE}-${NS}" \
+    --role="$ROLE" \
+    --serviceaccount="default:$USER" \
+    --namespace="$NS" || true
+}
+
+# View-only
+for USER in analyst1 analyst2 manager1; do
+  bind_cluster_role "$USER" "view-only"
+done
+
+# Security-admin
+for USER in security1 security2; do
+  bind_cluster_role "$USER" "security-admin"
+done
+
+# Platform-admin
+bind_cluster_role "devops1" "platform-admin"
+
+# Developer1, Developer2 -> frontend
+for USER in developer1 developer2; do
+  bind_namespace_role "$USER" "developer" "frontend"
+done
+
+# Developer3 -> backend
+bind_namespace_role "developer3" "developer" "backend"
