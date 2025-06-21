@@ -1,0 +1,94 @@
+# Под front-end
+apiVersion: v1
+kind: Pod
+metadata:
+  name: front-end
+  labels:
+    role: front-end
+spec:
+  containers:
+    - name: nginx
+      image: nginx
+      ports:
+        - containerPort: 80
+
+---
+
+# Под admin-front-end
+apiVersion: v1
+kind: Pod
+metadata:
+  name: admin-front-end
+  labels:
+    role: admin-front-end
+spec:
+  containers:
+    - name: nginx
+      image: nginx
+      ports:
+        - containerPort: 80
+
+---
+
+# Под back-end-api
+apiVersion: v1
+kind: Pod
+metadata:
+  name: back-end-api
+  labels:
+    role: back-end-api
+spec:
+  containers:
+    - name: nginx
+      image: nginx
+      ports:
+        - containerPort: 80
+
+---
+
+# Под admin-back-end-api
+apiVersion: v1
+kind: Pod
+metadata:
+  name: admin-back-end-api
+  labels:
+    role: admin-back-end-api
+spec:
+  containers:
+    - name: nginx
+      image: nginx
+      ports:
+        - containerPort: 80
+
+---
+
+# NetworkPolicy
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-specific-ui-api
+spec:
+  podSelector:
+    matchExpressions:
+      - key: role
+        operator: In
+        values:
+          - back-end-api
+          - admin-back-end-api
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              role: front-end
+      ports:
+        - protocol: TCP
+          port: 80
+    - from:
+        - podSelector:
+            matchLabels:
+              role: admin-front-end
+      ports:
+        - protocol: TCP
+          port: 80
